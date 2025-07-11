@@ -16,7 +16,7 @@ type ApiResponse = {
 }
 
 // 🔁 URL do seu webhook do n8n (mantenha privado e seguro)
-const WEBHOOK_URL = "https://rohemjorge.app.n8n.cloud/webhook-test/f9ec7c5f-d24f-412c-b159-b9236b62c690"
+const WEBHOOK_URL = "https://rohemjorge.app.n8n.cloud/webhook/f9ec7c5f-d24f-412c-b159-b9236b62c690"
 
 export async function getWhatsAppCode(formData: FormData): Promise<ApiResponse> {
   console.log("🚩 [DEBUG] getWhatsAppCode chamado")

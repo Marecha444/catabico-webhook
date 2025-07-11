@@ -16,6 +16,8 @@ type ApiResponse = {
 }
 
 export async function getWhatsAppCode(formData: FormData): Promise<ApiResponse> {
+  console.log("🚀 Função getWhatsAppCode chamada.")
+
   const phone = formData.get("phone") as string
   console.log("📲 Telefone recebido:", phone)
 
@@ -36,7 +38,7 @@ export async function getWhatsAppCode(formData: FormData): Promise<ApiResponse> 
   const baseUrl = process.env.Z_API_BASE_URL!
 
   try {
-    console.log("📡 Chamando webhook para obter instância...")
+    console.log("📡 Chamando webhook do N8N:", webhookUrl)
     const instanciaRes = await fetch(webhookUrl, { method: "POST" })
     const instancia = await instanciaRes.json()
     console.log("📦 Instância recebida:", instancia)
@@ -44,7 +46,7 @@ export async function getWhatsAppCode(formData: FormData): Promise<ApiResponse> 
     const { id: instanceId, token: instanceToken, clientToken } = instancia
 
     if (!instanceId || !instanceToken || !clientToken) {
-      console.log("❌ Instância incompleta:", instancia)
+      console.log("❌ Instância inválida")
       return {
         success: false,
         error: "Não foi possível obter uma instância disponível",
@@ -52,7 +54,7 @@ export async function getWhatsAppCode(formData: FormData): Promise<ApiResponse> 
     }
 
     const apiUrl = `${baseUrl}/instances/${instanceId}/token/${instanceToken}/phone-code/${formattedPhone}`
-    console.log("🔗 Chamando Z-API em:", apiUrl)
+    console.log("🔗 URL da Z-API:", apiUrl)
 
     const response = await fetch(apiUrl, {
       method: "GET",
@@ -62,19 +64,18 @@ export async function getWhatsAppCode(formData: FormData): Promise<ApiResponse> 
       },
     })
 
-    const text = await response.text()
-    console.log("📨 Resposta bruta da Z-API:", text)
+    const rawText = await response.text()
+    console.log("📨 Resposta da Z-API:", rawText)
 
     if (!response.ok) {
-      console.log("🚫 Falha na resposta da Z-API:", response.status)
+      console.log("🛑 Erro na chamada da Z-API:", response.status)
       return { success: false, error: "Erro ao chamar a API da Z-API" }
     }
 
-    const data = JSON.parse(text)
-    console.log("📊 JSON da resposta:", data)
+    const data = JSON.parse(rawText)
 
     if (data?.code) {
-      console.log("✅ Código recebido com sucesso:", data.code)
+      console.log("✅ Código recebido:", data.code)
       return {
         success: true,
         code: data.code,
@@ -84,14 +85,13 @@ export async function getWhatsAppCode(formData: FormData): Promise<ApiResponse> 
       }
     }
 
-    console.log("⚠️ Código não encontrado na resposta.")
+    console.log("⚠️ Código não encontrado na resposta")
     return {
       success: false,
       error: "Código não encontrado na resposta",
     }
-
   } catch (err) {
-    console.error("💥 Erro ao comunicar com a API:", err)
+    console.error("💥 Erro inesperado:", err)
     return {
       success: false,
       error: "Erro ao comunicar com a API",

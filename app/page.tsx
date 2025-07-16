@@ -34,38 +34,37 @@ export default function Home() {
     setShowPhoneForm(true)
   }
 
-  const fetchCode = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!phone || phone.length < 10) {
-      setError("Por favor, insira um número de telefone válido com DDD")
-      return
-    }
-
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const formData = new FormData()
-      formData.append("phone", phone)
-
-      const response = await getWhatsAppCode(formData)
-
-      if (response.success && response.code && response.instanceId && response.instanceToken) {
-        setCode(response.code)
-        setIsConnected(false)
-        setInstanceId(response.instanceId)
-        setInstanceToken(response.instanceToken)
-        
-      } else {
-        setError(response.error || "Erro ao obter o código")
-      }
-    } catch (err) {
-      setError("Falha ao comunicar com o servidor")
-    } finally {
-      setIsLoading(false)
-    }
+async function fetchCode(e: React.FormEvent) {
+  e.preventDefault();
+  if (!phone || phone.length < 10) {
+    setError("Número de telefone inválido. Insira DDD e número corretamente.");
+    return;
   }
+
+  setIsLoading(true);
+  setError(null);
+
+  try {
+    const formData = new FormData();
+    formData.append("phone", phone);
+
+    // ← Aqui: await dentro do try
+    const response = await getWhatsAppCode(formData);
+
+    if (response.success && response.code) {
+      // só essas duas condições
+      setCode(response.code);
+      setIsConnected(false);   // ou outro estado que você precise
+    } else {
+      setError(response.error || "Erro ao obter o código");
+    }
+  } catch (err) {
+    console.error("Falha ao gerar código:", err);
+    setError("Falha ao comunicar com o servidor");
+  } finally {
+    setIsLoading(false);
+  }
+}
 
   const handleRefresh = () => {
     if (!phone || phone.length < 10) {

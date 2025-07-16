@@ -11,9 +11,6 @@ type ApiResponse = {
   success: boolean
   code?: string
   error?: string
-  instanceId?: string
-  instanceToken?: string
-  clientToken?: string
 }
 
 // URL do webhook do n8n definida em variável de ambiente
@@ -25,6 +22,7 @@ export async function getWhatsAppCode(formData: FormData): Promise<ApiResponse> 
   if (typeof raw !== "string") {
     return { success: false, error: "Telefone não informado." }
   }
+
   const clean = raw.replace(/\D/g, "")
   const parse = phoneSchema.safeParse(clean)
   if (!parse.success) {
@@ -49,9 +47,19 @@ export async function getWhatsAppCode(formData: FormData): Promise<ApiResponse> 
       return { success: false, error: `Webhook retornou status ${resp.status}` }
     }
 
-    // 3) Retorna exatamente o que o n8n enviar
-    const result = (await resp.json()) as ApiResponse
-    return result
+    // 3) Transforma a resposta JSON
+    const json = await resp.json() as any
+    if (json.code) {
+      return {
+        success: true,
+        code: json.code,
+      }
+    }
+
+    return {
+      success: false,
+      error: json.error || "Código não encontrado na resposta",
+    }
 
   } catch (err: any) {
     console.error("❌ Erro em getWhatsAppCode:", err)
